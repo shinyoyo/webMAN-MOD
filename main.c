@@ -100,7 +100,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.01 MOD"						// webMAN version
+#define WM_VERSION			"1.43.02 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -1122,6 +1122,70 @@ int (*vshmain_is_ss_enabled)(void) = NULL;
 int (*set_SSHT_)(int) = NULL;
 
 int opd[2] = {0, 0};
+
+
+#ifdef VIRTUAL_PAD
+
+#include <cell/pad/libpad_dbg.h>
+
+static int32_t vpad_handle = -1;
+
+static inline void sys_pad_dbg_ldd_register_controller(uint8_t *data, int32_t *handle, uint8_t addr, uint32_t capability)
+{
+  // syscall for registering a virtual controller with custom capabilities
+  system_call_4(574, (uint8_t *)data, (int32_t *)handle, (uint8_t)addr, (uint32_t)capability);
+}
+
+static inline void sys_pad_dbg_ldd_set_data_insert_mode(int32_t handle, uint16_t addr, uint32_t *mode, uint8_t addr2)
+{
+  // syscall for controlling button data filter (allows a virtual controller to be used in games)
+  system_call_4(573, handle, addr, mode, addr2);
+}
+
+static int32_t register_ldd_controller()
+{
+  uint8_t data[0x114];
+  int32_t port;
+  uint32_t capability, mode, port_setting;
+
+  // register ldd controller with custom device capability
+  if (vpad_handle < 0)
+  {
+    capability = 0xFFFF; // CELL_PAD_CAPABILITY_PS3_CONFORMITY | CELL_PAD_CAPABILITY_PRESS_MODE | CELL_PAD_CAPABILITY_HP_ANALOG_STICK | CELL_PAD_CAPABILITY_ACTUATOR;
+    sys_pad_dbg_ldd_register_controller(data, (int32_t *)&(vpad_handle), 5, (uint32_t)capability << 1);
+    //vpad_handle = cellPadLddRegisterController();
+    sys_timer_usleep(1000*500); // allow some time for ps3 to register ldd controller
+
+    if (vpad_handle < 0) return(vpad_handle);
+
+    // all pad data into games
+    mode = CELL_PAD_LDD_INSERT_DATA_INTO_GAME_MODE_ON; // = (1)
+    sys_pad_dbg_ldd_set_data_insert_mode((int32_t)vpad_handle, 0x100, (uint32_t *)&mode, 4);
+
+    // set press and sensor mode on
+    port_setting = CELL_PAD_SETTING_PRESS_ON | CELL_PAD_SETTING_SENSOR_ON;
+    port = cellPadLddGetPortNo(vpad_handle);
+
+    if (port < 0) return(port);
+
+    cellPadSetPortSetting(port, port_setting);
+  }
+  return(CELL_PAD_OK);
+}
+
+static int32_t unregister_ldd_controller()
+{
+  if (vpad_handle >= 0)
+  {
+    int32_t r = cellPadLddUnregisterController(vpad_handle);
+    if (r != CELL_OK) return(r);
+    vpad_handle = -1;
+  }
+  return(CELL_PAD_OK);
+}
+
+//--------------------
+#endif // # VIRTUAL_PAD
 
 void * getNIDfunc(const char * vsh_module, uint32_t fnid, int32_t offset);
 
@@ -3495,7 +3559,7 @@ static void detect_firmware(void)
 	dex_mode=0;
 
 	if(peekq(0x80000000002ED818ULL)==CEX) {SYSCALL_TABLE = SYSCALL_TABLE_475;  c_firmware=(peekq(0x80000000002FCB68ULL)==0x323031352F30382FULL)?4.76f:4.75f;} else
-	if(peekq(0x800000000030F2D0ULL)==DEX) {SYSCALL_TABLE = SYSCALL_TABLE_475D; c_firmware=4.75f; dex_mode=2;}	else
+	if(peekq(0x800000000030F2D0ULL)==DEX) {SYSCALL_TABLE = SYSCALL_TABLE_475D; c_firmware=(peekq(0x800000000031EF48ULL)==0x323031352F30382FULL)?4.76f:4.75f; dex_mode=2;}	else
 	if(peekq(0x80000000002ED778ULL)==CEX) {SYSCALL_TABLE = SYSCALL_TABLE_470;  c_firmware=4.70f;}				else
 	if(peekq(0x800000000030F240ULL)==DEX) {SYSCALL_TABLE = SYSCALL_TABLE_470D; c_firmware=4.70f; dex_mode=2;}	else
 	if(peekq(0x80000000002ED860ULL)==CEX) {SYSCALL_TABLE = SYSCALL_TABLE_465;  c_firmware=(peekq(0x80000000002FC938ULL)==0x323031342F31312FULL)?4.66f:4.65f;} else
@@ -3566,7 +3630,8 @@ static void detect_firmware(void)
 		if(c_firmware==4.65f) {base_addr=0x2FA230; open_hook=0x2BB010;} else
 		if(c_firmware==4.66f) {base_addr=0x2FA230; open_hook=0x2BB010;} else
 		if(c_firmware==4.70f) {base_addr=0x2FA540; open_hook=0x2B2480;} else
-		if(c_firmware==4.75f) {base_addr=0x2FA5B0; open_hook=0x2B24F8;}
+		if(c_firmware==4.75f) {base_addr=0x2FA5B0; open_hook=0x2B24F8;} else
+		if(c_firmware==4.76f) {base_addr=0x2FA5B0; open_hook=0x2B24F8;}
 	}
 
 	base_addr |=0x8000000000000000ULL;
@@ -3577,7 +3642,7 @@ static void detect_firmware(void)
 	{
 		if(c_firmware>=4.55f && c_firmware<=4.76f)
 		{
-			get_fan_policy_offset=0x8000000000009E38ULL; // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75
+			get_fan_policy_offset=0x8000000000009E38ULL; // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 			set_fan_policy_offset=0x800000000000A334ULL; // sys 389 set_fan_policy
 
 			// idps / psid cex
@@ -3625,9 +3690,9 @@ static void detect_firmware(void)
 #endif
 	}
 	else // DEX
-	if(c_firmware>=4.55f && c_firmware<=4.75f)
+	if(c_firmware>=4.55f && c_firmware<=4.76f)
 	{
-			get_fan_policy_offset=0x8000000000009EB8ULL; // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75
+			get_fan_policy_offset=0x8000000000009EB8ULL; // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 			set_fan_policy_offset=0x800000000000A3B4ULL; // sys 389 set_fan_policy
 
 			// idps / psid dex
@@ -3649,7 +3714,7 @@ static void detect_firmware(void)
 				idps_offset2 = 0x800000000049CAF4ULL;
 				psid_offset  = 0x800000000049CB0CULL;
 			}
-			else if(c_firmware==4.75f)
+			else if(c_firmware==4.75f || c_firmware==4.76f)
 			{
 				idps_offset1 = 0x8000000000409930ULL;
 				idps_offset2 = 0x800000000049CAF4ULL;
@@ -4207,7 +4272,7 @@ static bool fix_param_sfo(unsigned char *mem, char *titleID, u8 msg)
 			char version[8];
 			strncpy(version, (char *) &mem[pos], 7);
 			int fw_ver=10000*((version[1] & 0xFF)-'0') + 1000*((version[3] & 0xFF)-'0') + 100*((version[4] & 0xFF)-'0');
-			if((fw_ver>(int)(c_firmware*10000.0f)) && c_firmware>=4.20f && c_firmware<4.75f)
+			if((fw_ver>(int)(c_firmware*10000.0f)) && c_firmware>=4.20f && c_firmware<4.76f)
 			{
 				if(msg) {char text[64]; sprintf(text, "WARNING: Game requires firmware version %i.%i", (fw_ver/10000), (fw_ver-10000*(fw_ver/10000))/100); show_msg((char*)text);}
 
@@ -4280,14 +4345,9 @@ static void fix_game(char *path)
 					cellFsLseek(fdw, offset, CELL_FS_SEEK_SET, &msiz);
 					cellFsRead(fdw, (void *)&ps3_sys_version, 8, &msiz);
 
-					if(offset!=0x278 && offset!=0x258 && offset!=0x428 && (ps3_sys_version[0] | ps3_sys_version[1] | ps3_sys_version[2] | ps3_sys_version[3] | ps3_sys_version[4] | ps3_sys_version[5])!=0)
+					if(offset!=0x278 && offset!=0x428 && (ps3_sys_version[0] | ps3_sys_version[1] | ps3_sys_version[2] | ps3_sys_version[3] | ps3_sys_version[4] | ps3_sys_version[5])!=0)
 					{
-						offset=0; goto retry_offset;
-					}
-
-					if(offset==0x258 && (ps3_sys_version[0] | ps3_sys_version[1] | ps3_sys_version[2] | ps3_sys_version[3] | ps3_sys_version[4] | ps3_sys_version[5])!=0)
-					{
-						offset=0x278; goto retry_offset;
+						offset=(offset==0x258) ? 0x278 : 0; goto retry_offset;
 					}
 
 					if((ps3_sys_version[0]+ps3_sys_version[1]+ps3_sys_version[2]+ps3_sys_version[3]+ps3_sys_version[4]+ps3_sys_version[5])==0 && (ps3_sys_version[6] & 0xFF)>0xA4)
@@ -6785,7 +6845,7 @@ static void setup_form(char *buffer, char *templn)
 #endif
 
 #ifdef FIX_GAME
-	if(c_firmware>=4.20f && c_firmware<4.75f)
+	if(c_firmware>=4.20f && c_firmware<4.76f)
 	{
 		add_check_box("nf", "3", STR_FIXGAME,  " : <select name=\"fm\">", (webman_config->fixgame==FIX_GAME_DISABLED), buffer);
 		add_option_item("0", "Auto"  , (webman_config->fixgame==FIX_GAME_AUTO) , buffer);
@@ -9300,8 +9360,8 @@ static void handleclient(u64 conn_s_p)
 			{   // cobra spoofer not working on 4.53
     			if(c_firmware!=4.53f)
 				{
-					cobra_config->spoof_version=0x0475;
-					cobra_config->spoof_revision=65242;
+					cobra_config->spoof_version=0x0476;
+					cobra_config->spoof_revision=65514;
 				}
 			}
 
@@ -9447,6 +9507,107 @@ again3:
 				}
 				param[pos]=0;
 			}
+
+ #ifdef VIRTUAL_PAD
+			if(strstr(param, "/pad.ps3"))
+			{
+				register_ldd_controller();
+
+				CellPadData data;
+				memset(&data, 0, sizeof(CellPadData));
+
+				// set default controller values
+				data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x0080;
+				data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x0080;
+
+				data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x0080;
+				data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x0080;
+
+				data.button[CELL_PAD_BTN_OFFSET_SENSOR_X] = 0x0200;
+				data.button[CELL_PAD_BTN_OFFSET_SENSOR_Y] = 0x0200;
+				data.button[CELL_PAD_BTN_OFFSET_SENSOR_Z] = 0x0200;
+				data.button[CELL_PAD_BTN_OFFSET_SENSOR_G] = 0x0200;
+
+				if(strcasestr(param, "off")) unregister_ldd_controller(); else
+				{
+
+					// press button
+					if(strcasestr(param, "psbtn") ) {data.button[0] |= CELL_PAD_CTRL_LDD_PS;}
+
+					if(strcasestr(param, "start") ) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_START; }
+					if(strcasestr(param, "select")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_SELECT;}
+
+					if (strcasestr(param, "analogL"))
+					{
+						// pad.ps3?analogL_up
+						if(strcasestr(param, "up"   )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x80; data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x00;}
+						if(strcasestr(param, "down" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x80; data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0xff;}
+						if(strcasestr(param, "left" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x00; data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x80;}
+						if(strcasestr(param, "right")) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0xff; data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x80;}
+					}
+					else if (strcasestr(param, "analogR"))
+					{
+						// pad.ps3?analogR_up
+						if(strcasestr(param, "up"   )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x80; data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x00;}
+						if(strcasestr(param, "down" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x80; data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0xff;}
+						if(strcasestr(param, "left" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x00; data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x80;}
+						if(strcasestr(param, "right")) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0xff; data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x80;}
+					}
+					else
+					{
+						if(strcasestr(param, "up"   )) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_UP;    data.button[CELL_PAD_BTN_OFFSET_PRESS_UP]    = 0xFF;}
+						if(strcasestr(param, "down" )) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_DOWN;  data.button[CELL_PAD_BTN_OFFSET_PRESS_DOWN]  = 0xFF;}
+						if(strcasestr(param, "left" )) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_LEFT;  data.button[CELL_PAD_BTN_OFFSET_PRESS_LEFT]  = 0xFF;}
+						if(strcasestr(param, "right")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_RIGHT; data.button[CELL_PAD_BTN_OFFSET_PRESS_RIGHT] = 0xFF;}
+					}
+
+					if(strcasestr(param, "cross"   )) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] |= CELL_PAD_CTRL_CROSS;    data.button[CELL_PAD_BTN_OFFSET_PRESS_CROSS]    = 0xFF;}
+					if(strcasestr(param, "square"  )) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] |= CELL_PAD_CTRL_SQUARE;   data.button[CELL_PAD_BTN_OFFSET_PRESS_SQUARE]   = 0xFF;}
+					if(strcasestr(param, "circle"  )) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] |= CELL_PAD_CTRL_CIRCLE;   data.button[CELL_PAD_BTN_OFFSET_PRESS_CIRCLE]   = 0xFF;}
+					if(strcasestr(param, "triangle")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] |= CELL_PAD_CTRL_TRIANGLE; data.button[CELL_PAD_BTN_OFFSET_PRESS_TRIANGLE] = 0xFF;}
+
+					if(strcasestr(param, "l1")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] |= CELL_PAD_CTRL_L1; data.button[CELL_PAD_BTN_OFFSET_PRESS_L1] = 0xFF;}
+					if(strcasestr(param, "l2")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] |= CELL_PAD_CTRL_L2; data.button[CELL_PAD_BTN_OFFSET_PRESS_L2] = 0xFF;}
+					if(strcasestr(param, "r1")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] |= CELL_PAD_CTRL_R1; data.button[CELL_PAD_BTN_OFFSET_PRESS_R1] = 0xFF;}
+					if(strcasestr(param, "r2")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] |= CELL_PAD_CTRL_R2; data.button[CELL_PAD_BTN_OFFSET_PRESS_R2] = 0xFF;}
+
+					if(strcasestr(param, "l3")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_L3;}
+					if(strcasestr(param, "r3")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_R3;}
+
+
+					data.len = CELL_PAD_MAX_CODES;
+
+					// send pad data to virtual pad
+					cellPadLddDataInsert(vpad_handle, &data);
+
+					sys_timer_usleep(70000); // hold for 70ms
+
+					// release all buttons and set default values
+					memset(&data, 0, sizeof(CellPadData));
+					data.len = CELL_PAD_MAX_CODES;
+
+					data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x0080;
+					data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x0080;
+
+					data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x0080;
+					data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x0080;
+
+					data.button[CELL_PAD_BTN_OFFSET_SENSOR_X] = 0x0200;
+					data.button[CELL_PAD_BTN_OFFSET_SENSOR_Y] = 0x0200;
+					data.button[CELL_PAD_BTN_OFFSET_SENSOR_Z] = 0x0200;
+					data.button[CELL_PAD_BTN_OFFSET_SENSOR_G] = 0x0200;
+
+					// send pad data to virtual pad
+					cellPadLddDataInsert(vpad_handle, &data);
+				}
+
+				is_binary=0;
+				http_response(conn_s, header, param, 200, param+9);
+				loading_html--;
+				sys_ppu_thread_exit(0);
+				return;
+			}
+#endif
 
 #ifndef LITE_EDITION
  #ifdef WEB_CHAT
@@ -11727,14 +11888,14 @@ static void poll_thread(uint64_t poll)
 									if(!webman_config->fanc)
 									{
 										backup[5]=peekq(get_fan_policy_offset);
-										lv2poke32(get_fan_policy_offset, 0x38600001); // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75
+										lv2poke32(get_fan_policy_offset, 0x38600001); // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 									}
 
 									sys_sm_get_fan_policy(0, &st, &mode, &speed, &unknown);
 
 									if(!webman_config->fanc)
 									{
-										pokeq(get_fan_policy_offset, backup[5]); // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75
+										pokeq(get_fan_policy_offset, backup[5]); // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 									}
 								}
 								_meminfo meminfo;
@@ -12349,7 +12510,7 @@ static void restore_fan(u8 set_ps2_temp)
 		else sys_sm_set_fan_policy(0, 1, 0x0); //syscon
 
 		pokeq(set_fan_policy_offset, backup[4]);  // sys 389 set_fan_policy
-		pokeq(get_fan_policy_offset, backup[5]);  // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75
+		pokeq(get_fan_policy_offset, backup[5]);  // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 
 		backup[0]=0;
 	}
@@ -12372,7 +12533,7 @@ static void fan_control(u8 temp0, u8 initial)
 
 				backup[4]=peekq(set_fan_policy_offset);
 				backup[5]=peekq(get_fan_policy_offset);
-				lv2poke32(get_fan_policy_offset, 0x38600001); // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75
+				lv2poke32(get_fan_policy_offset, 0x38600001); // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 				lv2poke32(set_fan_policy_offset, 0x38600001); // sys 389 set_fan_policy
 
 			    sys_sm_set_fan_policy(0, 2, 0x33);
@@ -14395,7 +14556,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 #endif
 		}
 		else
-		if(c_firmware==4.75f)
+		if(c_firmware==4.75f || c_firmware==4.76f)
 		{
 			//patches by deank
 			pokeq(0x800000000026D868ULL, 0x4E80002038600000ULL ); // fix 8001003C error  Original: 0x4E8000208003026CULL
@@ -15518,7 +15679,7 @@ exit_mount:
 	}
 
 #ifdef FIX_GAME
-	if(ret && (c_firmware<4.75f) && cellFsOpen("/dev_bdvd/PS3_GAME/PARAM.SFO", CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
+	if(ret && (c_firmware<4.76f) && cellFsOpen("/dev_bdvd/PS3_GAME/PARAM.SFO", CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
 	{
 		char paramsfo[_4KB_]; unsigned char *mem = (u8*)paramsfo;
 		uint64_t msiz = 0;
