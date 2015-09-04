@@ -21,6 +21,7 @@
 #define BDVD_REGION		1	// change BD/DVD region
 #define REMOVE_SYSCALLS	1	// remove syscalls on startup and using R2+TRIANGLE
 #define SPOOF_CONSOLEID	1	// spoof idps/psid
+#define VIRTUAL_PAD		1	// virtual pad
 
 //// TEST FEATURES ////
 //#define PS2_DISC		1	// uncomment to support /mount.ps2 (mount ps2 game folder as /dev_ps2disc)
