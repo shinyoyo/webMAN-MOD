@@ -100,7 +100,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.02 MOD"						// webMAN version
+#define WM_VERSION			"1.43.03 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -183,6 +183,9 @@ SYS_MODULE_STOP(wwwd_stop);
 #define SC_STOP_PRX_MODULE 				(482)
 #define SC_UNLOAD_PRX_MODULE 			(483)
 #define SC_PPU_THREAD_EXIT				(41)
+
+#define SC_PAD_SET_DATA_INSERT_MODE		(573)
+#define SC_PAD_REGISTER_CONTROLLER		(574)
 
 #define SC_SYS_POWER 					(379)
 #define SYS_SOFT_REBOOT 				0x0200
@@ -450,6 +453,7 @@ static u8 fan_speed=0x33;
 static u8 old_fan=0x33;
 static u32 max_temp=MY_TEMP;
 static bool fan_ps2_mode=false; // temporary disable dynamic fan control
+static bool show_info_popup = false;
 
 #define MAX_LAST_GAMES (5)
 typedef struct
@@ -1124,25 +1128,25 @@ int (*set_SSHT_)(int) = NULL;
 int opd[2] = {0, 0};
 
 
-#ifdef VIRTUAL_PAD
-
 #include <cell/pad/libpad_dbg.h>
 
+#ifdef VIRTUAL_PAD
+//--------------------
 static int32_t vpad_handle = -1;
 
 static inline void sys_pad_dbg_ldd_register_controller(uint8_t *data, int32_t *handle, uint8_t addr, uint32_t capability)
 {
   // syscall for registering a virtual controller with custom capabilities
-  system_call_4(574, (uint8_t *)data, (int32_t *)handle, (uint8_t)addr, (uint32_t)capability);
+  system_call_4(SC_PAD_REGISTER_CONTROLLER, (uint8_t *)data, (int32_t *)handle, (uint8_t)addr, (uint32_t)capability);
 }
 
 static inline void sys_pad_dbg_ldd_set_data_insert_mode(int32_t handle, uint16_t addr, uint32_t *mode, uint8_t addr2)
 {
   // syscall for controlling button data filter (allows a virtual controller to be used in games)
-  system_call_4(573, handle, addr, mode, addr2);
+  system_call_4(SC_PAD_SET_DATA_INSERT_MODE, handle, addr, mode, addr2);
 }
 
-static int32_t register_ldd_controller()
+static int32_t register_ldd_controller(void)
 {
   uint8_t data[0x114];
   int32_t port;
@@ -1173,7 +1177,7 @@ static int32_t register_ldd_controller()
   return(CELL_PAD_OK);
 }
 
-static int32_t unregister_ldd_controller()
+static int32_t unregister_ldd_controller(void)
 {
   if (vpad_handle >= 0)
   {
@@ -3563,7 +3567,7 @@ static void detect_firmware(void)
 	if(peekq(0x80000000002ED778ULL)==CEX) {SYSCALL_TABLE = SYSCALL_TABLE_470;  c_firmware=4.70f;}				else
 	if(peekq(0x800000000030F240ULL)==DEX) {SYSCALL_TABLE = SYSCALL_TABLE_470D; c_firmware=4.70f; dex_mode=2;}	else
 	if(peekq(0x80000000002ED860ULL)==CEX) {SYSCALL_TABLE = SYSCALL_TABLE_465;  c_firmware=(peekq(0x80000000002FC938ULL)==0x323031342F31312FULL)?4.66f:4.65f;} else
-	if(peekq(0x800000000030F1A8ULL)==DEX) {SYSCALL_TABLE = SYSCALL_TABLE_465D; c_firmware=(peekq(0x800000000031EBA8ULL)==0x323031342F31312FULL)?4.66f:4.65f; dex_mode=2;}	else
+	if(peekq(0x800000000030F1A8ULL)==DEX) {SYSCALL_TABLE = SYSCALL_TABLE_465D; c_firmware=(peekq(0x800000000031EBA8ULL)==0x323031342F31312FULL)?4.66f:4.65f; dex_mode=2;} else
 	if(peekq(0x80000000002ED850ULL)==CEX) {SYSCALL_TABLE = SYSCALL_TABLE_460;  c_firmware=4.60f;}				else
 	if(peekq(0x800000000030F198ULL)==DEX) {SYSCALL_TABLE = SYSCALL_TABLE_460D; c_firmware=4.60f; dex_mode=2;}	else
 	if(peekq(0x80000000002EC5E0ULL)==CEX) {SYSCALL_TABLE = SYSCALL_TABLE_455;  c_firmware=4.55f;}				else
@@ -3591,7 +3595,7 @@ static void detect_firmware(void)
 #endif
 	{c_firmware=0.00f; return;}
 
-    if(!SYSCALL_TABLE) {c_firmware=0.00f; return;}
+	if(!SYSCALL_TABLE) {c_firmware=0.00f; return;}
 
 #ifndef COBRA_ONLY
 	if(!dex_mode)
@@ -4482,8 +4486,8 @@ void fix_iso(char *iso_file, uint64_t maxbytes, bool patch_update)
 						cellFsLseek(fd, lba, CELL_FS_SEEK_SET, &msiz2);
 						cellFsRead(fd, (void *)&chunk, chunk_size, &msiz1); if(msiz1<=0) break;
 
-    					offset=(chunk[0xC]<<24) + (chunk[0xD]<<16) + (chunk[0xE]<<8) + chunk[0xF]; offset-=0x78;
-	    				if(offset < 0x90 || offset > 0x800 || (chunk[offset] | chunk[offset+1] | chunk[offset+2] | chunk[offset+3] | chunk[offset+4] | chunk[offset+5])) offset=(t>2)?0x258:0x428;
+						offset=(chunk[0xC]<<24) + (chunk[0xD]<<16) + (chunk[0xE]<<8) + chunk[0xF]; offset-=0x78;
+						if(offset < 0x90 || offset > 0x800 || (chunk[offset] | chunk[offset+1] | chunk[offset+2] | chunk[offset+3] | chunk[offset+4] | chunk[offset+5])) offset=(t>2)?0x258:0x428;
 
 						if((t>2) && (offset == 0x258) && (chunk[offset] | chunk[offset+1] | chunk[offset+2] | chunk[offset+3] | chunk[offset+4] | chunk[offset+5])) offset=0x278;
 
@@ -6387,9 +6391,9 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 	{system_call_3(SYS_NET_EURUS_POST_COMMAND, CMD_GET_MAC_ADDRESS, (u64)(u32)mac_address, 0x13);}
 
 #ifdef COBRA_ONLY
-    bool is_mamba; {system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_MAMBA); is_mamba = ((int)p1 ==0x666);}
+	bool is_mamba; {system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_MAMBA); is_mamba = ((int)p1 ==0x666);}
 
-    uint16_t cobra_version; sys_get_version2(&cobra_version);
+	uint16_t cobra_version; sys_get_version2(&cobra_version);
 
 	char cobra_ver[8];
 	if((cobra_version & 0x0F) == 0)
@@ -6399,8 +6403,12 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 
 	sprintf(param, "%s %s: %s", dex_mode ? "DEX" : "CEX", is_mamba ? "Mamba" : "Cobra", cobra_ver);
 #else
-    sprintf(param, "%s", dex_mode ? "DEX" : "CEX");
+	sprintf(param, "%s", dex_mode ? "DEX" : "CEX");
 #endif
+
+	//net_info info;
+	//memset(&info, 0, sizeof(net_info));
+	//xsetting_F48C0548()->sub_44A47C(&info); //info.ipAddress
 
 	net_info info;
 	memset(&info, 0, sizeof(net_info));
@@ -6965,32 +6973,32 @@ static void setup_form(char *buffer, char *templn)
 #else
 	sprintf(templn, "</select><p> %s [%iKB]: ", STR_MEMUSAGE, (int)(BUFFER_SIZE_ALL / KB)); strcat(buffer, templn);
 #endif
-	add_radio_button("fp", "0", "fo_0", "Standard (896KB)", NULL , (webman_config->foot==0), buffer);
-	add_radio_button("fp", "1", "fo_1", "Min (320KB)"     , NULL , (webman_config->foot==1), buffer);
-	add_radio_button("fp", "3", "fo_3", "Min+ (512KB)"    , NULL , (webman_config->foot==3), buffer);
-	add_radio_button("fp", "2", "fo_2", "Max (1280KB)"    , NULL , (webman_config->foot==2), buffer);
+	add_radio_button("fp", "0", "fo_0", "Standard (896KB)", ", " , (webman_config->foot==0), buffer);
+	add_radio_button("fp", "1", "fo_1", "Min (320KB)"     , ", " , (webman_config->foot==1), buffer);
+	add_radio_button("fp", "3", "fo_3", "Min+ (512KB)"    , ", " , (webman_config->foot==3), buffer);
+	add_radio_button("fp", "2", "fo_2", "Max (1280KB)"    , ", " , (webman_config->foot==2), buffer);
 	add_radio_button("fp", "4", "fo_4", "Max+ (1280KB)"   , NULL , (webman_config->foot==4), buffer);
 
 #ifndef ENGLISH_ONLY
 	//language
 	sprintf(templn, "<br> %s: <select name=\"l\">", STR_PLANG); strcat(buffer, templn);
 
-	add_option_item("0" , "English"                                                 , (webman_config->lang==0) , buffer);
+	add_option_item("0" , "English"													, (webman_config->lang==0) , buffer);
 	add_option_item("1" , "Fran&ccedil;ais"											, (webman_config->lang==1) , buffer);
-	add_option_item("2" , "Italiano"                                                , (webman_config->lang==2) , buffer);
+	add_option_item("2" , "Italiano"												, (webman_config->lang==2) , buffer);
 	add_option_item("3" , "Espa&ntilde;ol"											, (webman_config->lang==3) , buffer);
-	add_option_item("4" , "Deutsch"                                                 , (webman_config->lang==4) , buffer);
-	add_option_item("5" , "Nederlands"                                              , (webman_config->lang==5) , buffer);
+	add_option_item("4" , "Deutsch"													, (webman_config->lang==4) , buffer);
+	add_option_item("5" , "Nederlands"												, (webman_config->lang==5) , buffer);
 	add_option_item("6" , "Portugu&ecirc;s"											, (webman_config->lang==6) , buffer);
 	add_option_item("7" , "&#1056;&#1091;&#1089;&#1089;&#1082;&#1080;&#1081"		, (webman_config->lang==7) , buffer);
-	add_option_item("8" , "Magyar"                                                  , (webman_config->lang==8) , buffer);
-	add_option_item("9" , "Polski"                                                  , (webman_config->lang==9) , buffer);
+	add_option_item("8" , "Magyar"													, (webman_config->lang==8) , buffer);
+	add_option_item("9" , "Polski"													, (webman_config->lang==9) , buffer);
 	add_option_item("10", "&Epsilon;&lambda;&lambda;&eta;&nu;&iota;&kappa;&alpha;"	, (webman_config->lang==10), buffer);
-	add_option_item("11", "Hrvatski"                                                , (webman_config->lang==11), buffer);
+	add_option_item("11", "Hrvatski"												, (webman_config->lang==11), buffer);
 	add_option_item("12", "&#1041;&#1098;&#1083;&#1075;&#1072;&#1088;&#1089;&#1082;&#1080;", (webman_config->lang==12), buffer);
-	add_option_item("20", "Dansk"                                                   , (webman_config->lang==20), buffer);
-	add_option_item("21", "&#268;e&scaron;tina"                                     , (webman_config->lang==21), buffer);
-	add_option_item("22", "Sloven&#269;ina"                                         , (webman_config->lang==22), buffer);
+	add_option_item("20", "Dansk"													, (webman_config->lang==20), buffer);
+	add_option_item("21", "&#268;e&scaron;tina"										, (webman_config->lang==21), buffer);
+	add_option_item("22", "Sloven&#269;ina"											, (webman_config->lang==22), buffer);
 
 	add_option_item("13", "Indonesian"												, (webman_config->lang==13), buffer);
 	add_option_item("14", "T&uuml;rk&ccedil;e"										, (webman_config->lang==14), buffer);
@@ -8266,19 +8274,19 @@ static void ps3mapi_home(char *buffer, char *templn)
 	//Notify
     ps3mapi_notify(buffer, templn, (char*)" ");
 
-	if (syscall8_state>=0 && syscall8_state<3 )
+	if (syscall8_state >= 0 && syscall8_state < 3)
 	{
         ps3mapi_syscall(buffer, templn, (char*)" ");
 	}
-	if (syscall8_state>=0)
+	if (syscall8_state >= 0)
 	{
 		//Syscall8
 		ps3mapi_syscall8(buffer, templn, (char*)" ");
 	}
-	if (syscall8_state>=0 && syscall8_state<3 )
+	if (syscall8_state >= 0 && syscall8_state < 3)
 	{
 		//IDPS/PSID
-		if (version >= 0x0120 )
+		if(version >= 0x0120)
 		{
             ps3mapi_setidps(buffer, templn, (char*)" ");
 		}
@@ -8866,7 +8874,7 @@ loadvshplug_err_arg:
 		memset(tmp_name, 0, sizeof(tmp_name));
 		memset(tmp_filename, 0, sizeof(tmp_filename));
 		{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (u64)slot, (u64)(u32)tmp_name, (u64)(u32)tmp_filename); }
-		if (strlen(tmp_filename) > 0)
+		if(strlen(tmp_filename) > 0)
 		{
 			sprintf(templn, "<tr><td width=\"75\" style=\"text-align:left; float:left;\">%i</td>"
 							"<td width=\"100\" style=\"text-align:left; float:left;\">%s</td>"
@@ -9515,6 +9523,7 @@ again3:
 
 				CellPadData data;
 				memset(&data, 0, sizeof(CellPadData));
+				data.len = CELL_PAD_MAX_CODES;
 
 				// set default controller values
 				data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x0080;
@@ -9530,6 +9539,7 @@ again3:
 
 				if(strcasestr(param, "off")) unregister_ldd_controller(); else
 				{
+					u32 delay = 70000;
 
 					// press button
 					if(strcasestr(param, "psbtn") ) {data.button[0] |= CELL_PAD_CTRL_LDD_PS;}
@@ -9540,18 +9550,20 @@ again3:
 					if (strcasestr(param, "analogL"))
 					{
 						// pad.ps3?analogL_up
-						if(strcasestr(param, "up"   )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x80; data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x00;}
-						if(strcasestr(param, "down" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x80; data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0xff;}
-						if(strcasestr(param, "left" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x00; data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x80;}
-						if(strcasestr(param, "right")) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0xff; data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x80;}
+						if(strcasestr(param, "up"   )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x00;}
+						if(strcasestr(param, "down" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0xff;}
+						if(strcasestr(param, "left" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x00;}
+						if(strcasestr(param, "right")) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0xff;}
+						delay = 150000;
 					}
 					else if (strcasestr(param, "analogR"))
 					{
 						// pad.ps3?analogR_up
-						if(strcasestr(param, "up"   )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x80; data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x00;}
-						if(strcasestr(param, "down" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x80; data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0xff;}
-						if(strcasestr(param, "left" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x00; data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x80;}
-						if(strcasestr(param, "right")) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0xff; data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x80;}
+						if(strcasestr(param, "up"   )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x00;}
+						if(strcasestr(param, "down" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0xff;}
+						if(strcasestr(param, "left" )) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x00;}
+						if(strcasestr(param, "right")) {data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0xff;}
+						delay = 150000;
 					}
 					else
 					{
@@ -9574,31 +9586,31 @@ again3:
 					if(strcasestr(param, "l3")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_L3;}
 					if(strcasestr(param, "r3")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_R3;}
 
-
-					data.len = CELL_PAD_MAX_CODES;
-
 					// send pad data to virtual pad
 					cellPadLddDataInsert(vpad_handle, &data);
 
-					sys_timer_usleep(70000); // hold for 70ms
+					if(!strcasestr(param, "hold"))
+					{
+						sys_timer_usleep(delay); // hold for 70ms
 
-					// release all buttons and set default values
-					memset(&data, 0, sizeof(CellPadData));
-					data.len = CELL_PAD_MAX_CODES;
+						// release all buttons and set default values
+						memset(&data, 0, sizeof(CellPadData));
+						data.len = CELL_PAD_MAX_CODES;
 
-					data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x0080;
-					data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x0080;
+						data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X] = 0x0080;
+						data.button[CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y] = 0x0080;
 
-					data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x0080;
-					data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x0080;
+						data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X] = 0x0080;
+						data.button[CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y] = 0x0080;
 
-					data.button[CELL_PAD_BTN_OFFSET_SENSOR_X] = 0x0200;
-					data.button[CELL_PAD_BTN_OFFSET_SENSOR_Y] = 0x0200;
-					data.button[CELL_PAD_BTN_OFFSET_SENSOR_Z] = 0x0200;
-					data.button[CELL_PAD_BTN_OFFSET_SENSOR_G] = 0x0200;
+						data.button[CELL_PAD_BTN_OFFSET_SENSOR_X] = 0x0200;
+						data.button[CELL_PAD_BTN_OFFSET_SENSOR_Y] = 0x0200;
+						data.button[CELL_PAD_BTN_OFFSET_SENSOR_Z] = 0x0200;
+						data.button[CELL_PAD_BTN_OFFSET_SENSOR_G] = 0x0200;
 
-					// send pad data to virtual pad
-					cellPadLddDataInsert(vpad_handle, &data);
+						// send pad data to virtual pad
+						cellPadLddDataInsert(vpad_handle, &data);
+					}
 				}
 
 				is_binary=0;
@@ -9619,7 +9631,8 @@ again3:
  #endif
 			if(strstr(param, "/popup.ps3"))
 			{
-				is_popup=1; is_binary=0;
+				if(param[10]==0) show_info_popup = true; else is_popup=1;
+				is_binary=0;
 				goto html_response;
 			}
 			if(strstr(param, "/dev_blind"))
@@ -9761,14 +9774,14 @@ mobile_response:
 							strstr(param, "home.ps3mapi")     ||
 							strstr(param, "setmem.ps3mapi")   ||
 							strstr(param, "getmem.ps3mapi")   ||
-							strstr(param, "led.ps3mapi")   	  ||
+							strstr(param, "led.ps3mapi")      ||
 							strstr(param, "buzzer.ps3mapi")   ||
 							strstr(param, "notify.ps3mapi")   ||
 							strstr(param, "syscall.ps3mapi")  ||
 							strstr(param, "syscall8.ps3mapi") ||
-							strstr(param, "setidps.ps3mapi")   ||
-							strstr(param, "vshplugin.ps3mapi")   ||
-							strstr(param, "gameplugin.ps3mapi")   ||
+							strstr(param, "setidps.ps3mapi")  ||
+							strstr(param, "vshplugin.ps3mapi")  ||
+							strstr(param, "gameplugin.ps3mapi") ||
 #endif
 
 #ifdef COPY_PS3
@@ -9893,7 +9906,7 @@ html_response:
 				sys_ppu_thread_exit(0);
 
 			}
-			if(strstr(param, "cpursx.ps3"))
+			if(strstr(param, "cpursx.ps3") || show_info_popup)
 			{
 				if(!sysmem && sys_memory_allocate(_64KB_, SYS_MEMORY_PAGE_SIZE_64K, &sysmem)!=0)
 				{
@@ -10023,7 +10036,7 @@ html_response:
 #endif
 				if(is_binary==2) // folder listing
 				{
-					if (folder_listing(buffer, templn, param, conn_s, tempstr, header) == false)
+					if(folder_listing(buffer, templn, param, conn_s, tempstr, header) == false)
 					{
 						if(sysmem) sys_memory_free(sysmem);
 						loading_html--;
@@ -11652,6 +11665,8 @@ static void poll_thread(uint64_t poll)
 
 		for(u8 n=0;n<10;n++)
 		{
+			if(show_info_popup) {show_info_popup = false; goto show_popup;}
+
 			if(!webman_config->nopad)
 			{
 				data.len=0;
@@ -11856,7 +11871,7 @@ static void poll_thread(uint64_t poll)
 							refresh_xml((char*)msg);
 						}
                         else
-						if(!(webman_config->combo & SHOW_TEMP) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & (CELL_PAD_CTRL_R3 | CELL_PAD_CTRL_START))) // SELECT+START show temperatures / hdd space
+						if( (!(webman_config->combo & SHOW_TEMP) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & (CELL_PAD_CTRL_R3 | CELL_PAD_CTRL_START)))) // SELECT+START show temperatures / hdd space
 						{
 #ifdef VIDEO_REC
 							if(!(webman_config->combo2 & VIDRECORD) && data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_R3) // SELECT + R3
@@ -11873,8 +11888,9 @@ static void poll_thread(uint64_t poll)
 							else
 #endif
 							{
-								CellRtcTick pTick; cellRtcGetCurrentTick(&pTick); u32 dd, hh, mm, ss; char tmp[200];
-
+								CellRtcTick pTick; u32 dd, hh, mm, ss; char tmp[200];
+show_popup:
+								cellRtcGetCurrentTick(&pTick);
 								get_temperature(0, &t1);
 								get_temperature(1, &t2);
 
@@ -14428,7 +14444,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 			sc_142=0x3242F0; //0x385108 + 142*8 = 00385578 -> 80 00 00 00 00 32 42 F0
 #endif
 		}
-        else
+		else
 		if(c_firmware==4.55f)
 		{
 			pokeq(0x8000000000277758ULL, 0x4E80002038600000ULL ); // fix 8001003C error
@@ -14439,7 +14455,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 			pokeq(0x8000000000059DC0ULL, 0x419E00D860000000ULL );
 			pokeq(0x8000000000059DC8ULL, 0x2F84000448000098ULL );
 			pokeq(0x800000000005DCB8ULL, 0x2F83000060000000ULL );
-            pokeq(0x800000000005DCD0ULL, 0x2F83000060000000ULL );
+			pokeq(0x800000000005DCD0ULL, 0x2F83000060000000ULL );
 
 #ifndef COBRA_ONLY
 			sc_600=0x3634F8; //0x388488 + 600*8 = 00389748 -> 80 00 00 00 00 36 34 F8
@@ -14574,7 +14590,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 
 			pokeq(0x800000000005962CULL, 0xF821FE917C0802A6ULL ); // just restore the original
 			pokeq(0x800000000005C7ECULL, 0x419E0038E8610098ULL ); // just restore the original
-			
+
 #ifndef COBRA_ONLY
 			sc_600=0x364848; //0x38A3E8 + 600*8 = 0038B6A8 -> 80 00 00 00 00 36 48 48
 			sc_604=0x364920; //0x38A3E8 + 604*8 = 0038B6C8 -> 80 00 00 00 00 36 49 20

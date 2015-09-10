@@ -54,7 +54,11 @@ extern int32_t sys_net_3B27C780(int32_t s, sys_net_sockinfo_t *p, int32_t n); //
 extern int32_t sys_net_3F09E20A(int32_t nfds, struct fd_set *readfds, struct fd_set *writefds, struct fd_set *exceptfds, struct timeval *timeout); // socketselect()
 #define socketselect sys_net_3F09E20A
 
-// sys_net_4323CDA7 // ?
+
+
+extern int32_t sys_net_4323CDA7(uint64_t *arg1, int32_t arg2, int32_t arg3, uint64_t *arg4, int32_t arg5, int32_t arg6, int32_t arg7); // ? (&var_AC, 6, 0, &var_B0, 0, 0, 0)
+
+
 
 extern int32_t sys_net_44328AA2(int32_t id, int32_t *pflags); // sys_net_close_dump()
 #define sys_net_close_dump sys_net_44328AA2
@@ -109,7 +113,7 @@ extern int32_t sys_net_79B61646(void); // sys_net_show_route()
 extern char *sys_net_858A930B(struct in_addr in); // inet_ntoa()
 #define inet_ntoa sys_net_858A930B
 
-// sys_net_878472F0 // ?
+// sys_net_878472F0 // ? (arg1, arg2, 1) 
 
 extern int32_t sys_net_88F03575(int32_t s, int32_t level, int32_t optname, const void *optval, socklen_t optlen); // setsockopt()
 #define setsockopt sys_net_88F03575
@@ -127,9 +131,11 @@ extern int32_t sys_net_8D1B77FB(int32_t s, int32_t flags); // sys_net_abort_sock
 #define sys_net_abort_socket sys_net_8D1B77FB
 
 // sys_net_8F3E1687 // ?
-// sys_net_92852B93 // ?
+
+extern int32_t sys_net_92852B93(int32_t socket, uint32_t packet_id, const char *interface); // ? e.g. (s, 0xC020698C, "eth0");
+
 // sys_net_943231D1 // ?
-// sys_net_959C4441 // ?
+// sys_net_959C4441 // ? blr
 
 extern ssize_t sys_net_9647570B(int32_t s, const void *buf, size_t len, int32_t flags, const struct sockaddr *addr, socklen_t addrlen); // sendto()
 #define sendto sys_net_9647570B
@@ -163,7 +169,7 @@ extern int32_t sys_net_AB447704(int32_t len, int32_t flags); // sys_net_open_dum
 extern ssize_t sys_net_AD09481B(int32_t s, const struct msghdr *msg, int32_t flags); // sendmsg()
 #define sendmsg sys_net_AD09481B
 
-// sys_net_AEB2EC57 // ?
+// sys_net_AEB2EC57 // ? sys_timer_usleep
 // sys_net_AFC21C3E // ?
 
 extern int32_t sys_net_B0A59804(int32_t s, const struct sockaddr *addr, socklen_t addrlen); // bind()
@@ -181,7 +187,7 @@ extern int32_t sys_net_B68D5625(void); // sys_net_finalize_network()
 #define sys_net_finalize_network sys_net_B68D5625
 
 // sys_net_C2F38FF1 // ?
-// sys_net_C82191E3 // ?
+// sys_net_C82191E3 // ? (void)
 // sys_net_C9157D30 // _sys_net_h_errno_loc
 
 extern int32_t sys_net_C94F6939(int32_t s, struct sockaddr *addr, socklen_t *paddrlen); // accept()
@@ -193,8 +199,8 @@ extern const char *sys_net_C98A3146(int32_t af, const void *src, char *dst, sock
 extern ssize_t sys_net_C9D09C34(int32_t s, struct msghdr *msg, int32_t flags); // recvmsg()
 #define recvmsg sys_net_C9D09C34
 
-// sys_net_D1A13957 // ?
-// sys_net_D4C6B098 // ?
+// sys_net_D1A13957 // ? gethostbyname, (?, const char *name)
+// sys_net_D4C6B098 // ? 
 
 extern in_addr_t sys_net_DABBC2C0(const char *cp); // inet_addr()
 #define inet_addr sys_net_DABBC2C0
@@ -212,7 +218,7 @@ extern in_addr_t sys_net_E39A62A7(struct in_addr in); // inet_netof()
 
 // sys_net_E61CB17A // ?
 // sys_net_F0645452 // ?
-// sys_net_F5F39114 // ?
+// sys_net_F5F39114 // sys_ppu_thread_join, (sys_ppu_thread_t thread_id, uint64_t *vptr)
 
 extern struct hostent *sys_net_F7AC8941(const char *addr, socklen_t len, int32_t type); // gethostbyaddr()
 #define gethostbyaddr sys_net_F7AC8941
@@ -223,12 +229,13 @@ extern int32_t sys_net_F9EC2DB6(int32_t s, struct sockaddr *addr, socklen_t *pad
 #define getpeername sys_net_F9EC2DB6
 
 // sys_net_FAFD69A4 // ?
-// sys_net_FB03C635 // ?
+
+// sys_net_FB03C635 // ? (?, const char *addr, socklen_t len, int32_t type)
 
 extern ssize_t sys_net_FBA04F37(int32_t s, void *buf, size_t len, int32_t flags); // recv()
 #define recv sys_net_FBA04F37
 
-// sys_net_FD58F18A // ?
+// sys_net_FD58F18A // ? -> sys_net_878472F0()
 
 extern int32_t sys_net_FDB8F926(sys_net_thread_id_t tid, int32_t flags); // sys_net_free_thread_context()
 #define sys_net_free_thread_context sys_net_FDB8F926

@@ -292,7 +292,10 @@ extern int32_t vshnet_59106229(const char *url);  // overrides regular update.tx
 // vshnet_723329D8  // ?
 // vshnet_72F3D524  // ?
 // vshnet_72F9C360  // ?
-// vshnet_731E546F  // prints Firmware version ("%02d.%02d) 	int vshnet_731E546F(out: const char*)
+
+extern int32_t vshnet_731E546F(const char *);  // prints Firmware version ("%02d.%02d) 	int vshnet_731E546F(out: const char*)
+
+
 // vshnet_73201336  // ?
 // vshnet_735770D1  // ?
 // vshnet_745B67D5  // ?

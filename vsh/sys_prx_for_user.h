@@ -418,7 +418,8 @@ extern int sysPrxForUser_E0DA8EFD(sys_spu_image_t *img);                  // sys
 extern void sysPrxForUser_E6F2C1E7(int status);                           // sys_process_exit()
 #define sys_process_exit sysPrxForUser_E6F2C1E7
 
-// sysPrxForUser_E75C40F2;  // ?
+extern int32_t sysPrxForUser_E75C40F2(void *x);  // ?
+
 // sysPrxForUser_E76964F5  // sys_game_board_storage_read
 // sysPrxForUser_E7EF3A80  // sys_prx_load_module_list_on_memcontainer
 // sysPrxForUser_E95FFA0A  // ret 0x80010003

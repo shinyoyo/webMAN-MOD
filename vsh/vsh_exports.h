@@ -61,6 +61,7 @@
 #include "sys_io.h"
 #include "mms_db.h"
 #include "netctl_main.h"
+#include "x3.h"
 
 #include "xregistry.h"
 #include "game_plugin.h"

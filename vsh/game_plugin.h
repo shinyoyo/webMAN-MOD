@@ -1,111 +1,115 @@
 // Mysis game_plugin.h v0.1
-typedef struct
+// 3141card (C style version)
+#ifndef __GAME_PLUGIN_H__
+#define __GAME_PLUGIN_H__
+
+typedef struct game_plugin_interface_t
 {
-	int (*DoUnk0)(void); // set Widget "page_game_main" and activate
-	int (*DoUnk1)(void *); // uint8_t [0x5B8]
-	int (*DoUnk2)(void *); // uint8_t [0x230]
-	int (*DoUnk3)(int); // 3 = "CB" Category
-	int (*DoUnk4)(int,void *); // uint8_t [0x1A0]
-	int (*DoUnk5)(void);
-	int (*DoUnk6)(void);
-	int (*DoUnk7)(void);
-	int (*gameInfo)(void *); // uint8_t [0x114] // 0x4=TitleID, 0x14=Title/Game Name
-	int (*DoUnk9)(void *); // uint8_t [0x80]
-	int (*DoUnk10)(char *); // char [8]
-	int (*DoUnk11)(unsigned long, int);
-	int (*DoUnk12)(void);
-	int (*DoUnk13)(void);
-	int (*DoUnk14)(void);
-	int (*GetExecAppType)(int *,int *); // apptype, extended type?
-	int (*DoUnk16)(int *);
-	int (*DoUnk17)(void);
-	int (*DoUnk18)(int *,char *); // char [0x20]
-	int (*DoUnk19)(int *,char *,char *); // char [0x20]
-	int (*DoUnk20)(void *); // uint8_t [0x5B8]
-	int (*DoUnk21)(void);
-	int (*commerce2ExecuteStoreBrowse)(int,char *,int,int); //targetType,targetId,flags,userdata
-	int (*DoUnk23)(void *); // uint8_t [0xA4]
-	int (*DoUnk24)(void *); // uint8_t [0xA4]
-	int (*wakeupWithGameExit)(char *,int); // char [0x800], userdata
-	int (*commerce2Reboot4PrgDl)(int); // taskId
-	int (*DoUnk27)(char *); // [0x800]
-	int (*DoUnk28)(void);
-	int (*DoUnk29)(void *); // [0xxA4]
-	int (*commerce2GetOptions)(int *); // userdata
-	int (*GetUsrdataOnGameExit)(int *);
-	int (*GetManualPath)(char *); // [0x80]
-	int (*DoUnk33)(void);
-	int (*DoUnk34)(char *); // [0x20]
-	int (*DoUnk35)(char *); // [0x20]
-	int (*DoUnk36)(int, char *); // no size check
-	int (*DoUnk37)(void);
-	int (*DoUnk38)(unsigned long);
-	int (*DoUnk39)(char *); // titleId[0x20]
-	int (*DoUnk40)(char *,int *,int); // titleId[0x20]
-	int (*DoUnk41)(char *,char *,int); // titleId[0x20], char [4]
-	int (*DoUnk42)(char *,int, char *,int); //titleid, flags
-	int (*DoUnk43)(void);
-	int (*DoUnk44)(void);
-	int (*initGameData)(int,int); // memContainer, NoCalcFlag
-	int (*EndGameData)(void);
-	int (*getGameDataStat)(char *,char *,void *); // [0x1450]
-	int (*updateGameData)(char *,char *, void *, void *);//callback, sysparam[0x1450]
-	int (*DoUnk49)(int,int,int,void *,char *);
-	int (*DoUnk50)(void);
-	int (*DoUnk51)(void);
-	int (*cacheInit)(void *,void *); // callback, SysCacheParam[0x444]
-	int (*cacheClear)(void);
-	int (*GetBootInfo)(void *);// [0x20]
-	int (*GetTitleId)(void *);
-	int (*kbGetSize)(int *,int);
-	int (*SetSysVersion)(char *);
-	int (*GetDiscInfo)(void *); //[0x20]
-	int (*DoUnk59)(int,int,void *,int);
-	int (*SetEjectMode)(int); //int mode
-	int (*gameExec)(char *,char *,int,int,int,int,int);
-	int (*getList)(int *,int *,int *,int *,int);
-	int (*DoUnk63_GetBootInfo)(int *,char *,int *); //[0x20]
-	int (*SetExecDataParam)(int *);
-	int (*GetExitInfo)(int *,int *, char *,int *,int *);
-	int (*HomePath)(char *);
-	int (*DeleteGame)(char *,int);
-	int (*OptionPath)(char *,char *);
-	int (*ExportPath)(char *);
-	int (*ImportPath)(char *);
-	int (*Open)(int,char *,int,int *);
-	int (*BootCheck)(int *,int *,int,int *,char *);
-	int (*PatchCheck)(int,int *);
-	int (*Create)(void *,char *,char *,int);
-	int (*getInt)(int,int*,int);
-	int (*getStr)(int,char *,int,int);
-	int (*setInt)(int,int,int);
-	int (*setStr)(int,char *,int);
-	int (*Close)(char *,char *);
-	int (*DoUnk80)(int,int,char *);
-	int (*getSizeKB)(int *);
-	int (*tInstall)(char *,char *,int,int);
-	int (*mtInstall)(int);
-	int (*mtWrite)(int,void *);
-	int (*mtClose)(int,int);
-	int (*getUpPath)(char *);
-	int (*getWConPath)(char *);
-	int (*delGameData)(char *);
-	int (*getDevIdList)(int *,void *);
-	int (*getDevInfo)(unsigned long,void *);
-	int (*getUsbDevInfo)(unsigned long,void *);
-	int (*storageMode)(void);
-	int (*notifyCtrl)(int);
-	int (*allreadyDisp)(void);
-	int (*pspLoad)(void *,int);
-	int (*pspSave)(void *,int);
-	int (*vmcAssign)(int,char *,void *,int);
-	int (*ps1End)(int);
-	int (*SetPadRumble)(int);
-	int (*DoUnk100)(void *,int);
-	int (*DoUnk101)(void);
-	int (*DoUnk102)(char *);
-	int (*DoUnk103_DeleteGame)(char *);
-	int (*DoUnk104)(void);
+	int32_t (*DoUnk0)(void); // set Widget "page_game_main" and activate
+	int32_t (*DoUnk1)(void *); // uint8_t [0x5B8]
+	int32_t (*DoUnk2)(void *); // uint8_t [0x230]
+	int32_t (*DoUnk3)(int); // 3 = "CB" Category
+	int32_t (*DoUnk4)(int, void *); // uint8_t [0x1A0]
+	int32_t (*DoUnk5)(void);
+	int32_t (*DoUnk6)(void);
+	int32_t (*DoUnk7)(void);
+	int32_t (*gameInfo)(void *); // uint8_t [0x114] // 0x4=TitleID, 0x14=Title/Game Name
+	int32_t (*DoUnk9)(void *); // uint8_t [0x80]
+	int32_t (*DoUnk10)(char *); // char [8]
+	int32_t (*DoUnk11)(unsigned long, int);
+	int32_t (*DoUnk12)(void);
+	int32_t (*DoUnk13)(void);
+	int32_t (*DoUnk14)(void);
+	int32_t (*GetExecAppType)(int *, int *); // apptype, extended type?
+	int32_t (*DoUnk16)(int *);
+	int32_t (*DoUnk17)(void);
+	int32_t (*DoUnk18)(int *, char *); // char [0x20]
+	int32_t (*DoUnk19)(int *, char *, char *); // char [0x20]
+	int32_t (*DoUnk20)(void *); // uint8_t [0x5B8]
+	int32_t (*DoUnk21)(void);
+	int32_t (*commerce2ExecuteStoreBrowse)(int, char *, int, int); //targetType,targetId,flags,userdata
+	int32_t (*DoUnk23)(void *); // uint8_t [0xA4]
+	int32_t (*DoUnk24)(void *); // uint8_t [0xA4]
+	int32_t (*wakeupWithGameExit)(char *, int); // char [0x800], userdata
+	int32_t (*commerce2Reboot4PrgDl)(int); // taskId
+	int32_t (*DoUnk27)(char *); // [0x800]
+	int32_t (*DoUnk28)(void);
+	int32_t (*DoUnk29)(void *); // [0xxA4]
+	int32_t (*commerce2GetOptions)(int *); // userdata
+	int32_t (*GetUsrdataOnGameExit)(int *);
+	int32_t (*GetManualPath)(char *); // [0x80]
+	int32_t (*DoUnk33)(void);
+	int32_t (*DoUnk34)(char *); // [0x20]
+	int32_t (*DoUnk35)(char *); // [0x20]
+	int32_t (*DoUnk36)(int, char *); // no size check
+	int32_t (*DoUnk37)(void);
+	int32_t (*DoUnk38)(unsigned long);
+	int32_t (*DoUnk39)(char *); // titleId[0x20]
+	int32_t (*DoUnk40)(char *, int *, int); // titleId[0x20]
+	int32_t (*DoUnk41)(char *, char *, int); // titleId[0x20], char [4]
+	int32_t (*DoUnk42)(char *, int, char *, int); //titleid, flags
+	int32_t (*DoUnk43)(void);
+	int32_t (*DoUnk44)(void);
+	int32_t (*initGameData)(int, int); // memContainer, NoCalcFlag
+	int32_t (*EndGameData)(void);
+	int32_t (*getGameDataStat)(char *, char *, void *); // [0x1450]
+	int32_t (*updateGameData)(char *, char *, void *, void *);//callback, sysparam[0x1450]
+	int32_t (*DoUnk49)(int, int, int, void *, char *);
+	int32_t (*DoUnk50)(void);
+	int32_t (*DoUnk51)(void);
+	int32_t (*cacheInit)(void *, void *); // callback, SysCacheParam[0x444]
+	int32_t (*cacheClear)(void);
+	int32_t (*GetBootInfo)(void *);// [0x20]
+	int32_t (*GetTitleId)(void *);
+	int32_t (*kbGetSize)(int *, int);
+	int32_t (*SetSysVersion)(char *);
+	int32_t (*GetDiscInfo)(void *); //[0x20]
+	int32_t (*DoUnk59)(int, int, void *, int);
+	int32_t (*SetEjectMode)(int); //int mode
+	int32_t (*gameExec)(char *,char *,int,int,int,int,int);
+	int32_t (*getList)(int *, int *, int *, int *, int);
+	int32_t (*DoUnk63_GetBootInfo)(int *, char *, int *); //[0x20]
+	int32_t (*SetExecDataParam)(int *);
+	int32_t (*GetExitInfo)(int *, int *, char *, int *, int *);
+	int32_t (*HomePath)(char *);
+	int32_t (*DeleteGame)(char *, int);
+	int32_t (*OptionPath)(char *, char *);
+	int32_t (*ExportPath)(char *);
+	int32_t (*ImportPath)(char *);
+	int32_t (*Open)(int,char *, int, int *);
+	int32_t (*BootCheck)(int *, int *, int, int *, char *);
+	int32_t (*PatchCheck)(int,int *);
+	int32_t (*Create)(void *, char *, char *, int);
+	int32_t (*getInt)(int, int*, int);
+	int32_t (*getStr)(int, char *, int, int);
+	int32_t (*setInt)(int, int, int);
+	int32_t (*setStr)(int, char *, int);
+	int32_t (*Close)(char *, char *);
+	int32_t (*DoUnk80)(int, int, char *);
+	int32_t (*getSizeKB)(int *);
+	int32_t (*tInstall)(char *, char *, int, int);
+	int32_t (*mtInstall)(int);
+	int32_t (*mtWrite)(int, void *);
+	int32_t (*mtClose)(int, int);
+	int32_t (*getUpPath)(char *);
+	int32_t (*getWConPath)(char *);
+	int32_t (*delGameData)(char *);
+	int32_t (*getDevIdList)(int *, void *);
+	int32_t (*getDevInfo)(unsigned long, void *);
+	int32_t (*getUsbDevInfo)(unsigned long,void *);
+	int32_t (*storageMode)(void);
+	int32_t (*notifyCtrl)(int);
+	int32_t (*allreadyDisp)(void);
+	int32_t (*pspLoad)(void *, int);
+	int32_t (*pspSave)(void *, int);
+	int32_t (*vmcAssign)(int,char *, void *, int);
+	int32_t (*ps1End)(int);
+	int32_t (*SetPadRumble)(int);
+	int32_t (*DoUnk100)(void *, int);
+	int32_t (*DoUnk101)(void);
+	int32_t (*DoUnk102)(char *);
+	int32_t (*DoUnk103_DeleteGame)(char *);
+	int32_t (*DoUnk104)(void);
 } game_plugin_interface;
 
 game_plugin_interface * game_interface;
@@ -113,3 +117,5 @@ game_plugin_interface * game_interface;
 int (*View_Find)(const char *) = 0;
 int (*plugin_GetInterface)(int,int) = 0;
 int (*vsh_sprintf)( char*, const char*,...) = 0;
+
+#endif // __GAME_PLUGIN_H__
