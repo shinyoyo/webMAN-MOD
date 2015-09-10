@@ -19,7 +19,7 @@ STR_GIGABYTE		[Гб]
 
 STR_COPYING			[Копирование]
 STR_CPYDEST			[Назначение]
-STR_CPYFINISH		[Копирование завершено!]
+STR_CPYFINISH		[Скопировано!]
 STR_CPYABORT		[Копирование прервано!]
 STR_DELETE			[Удалить]
 
