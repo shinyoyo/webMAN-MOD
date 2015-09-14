@@ -572,7 +572,7 @@
 		<Attributes>
 			<Table key="webman_unmount">
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/homebrew.png</String></Pair>
-				<Pair key="title"><String>Размонтировать диск</String></Pair>
+				<Pair key="title"><String>Выгрузить игру</String></Pair>
 				<Pair key="info"><String>Текущая смонтированная игра будет выгружена [Select+O]</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount.ps3/unmount</String></Pair>
@@ -580,7 +580,7 @@
 		</Attributes>
 		<Items><Item class="type:x-xmb/module-action" key="webman_unmount" attr="webman_unmount"/></Items>
 	</View>
-	
+
 	<!-- Main > webMAN > Insert Disc -->
 	<View id="seg_webman_insert">
 		<Attributes>
