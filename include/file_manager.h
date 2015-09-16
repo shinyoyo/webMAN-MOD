@@ -2,9 +2,11 @@
 
 static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn, char *name, char *fsize, CellRtcDateTime rDate, u16 flen, unsigned long long sz, char *sf, u8 is_net)
 {
+	unsigned long long sbytes = sz;
+
 	if(sz<10240) sprintf(sf, "%s", STR_BYTE);
-	else if(sz<2097152) {sprintf(sf, "%s", STR_KILOBYTE); sz>>=10;}
-	else if(sz<2147483648U) {sprintf(sf, "%s", STR_MEGABYTE); sz>>=20;}
+	else if(sz<0x200000ULL) {sprintf(sf, "%s", STR_KILOBYTE); sz>>=10;}
+	else if(sz<0xC00000000ULL) {sprintf(sf, "%s", STR_MEGABYTE); sz>>=20;}
 	else {sprintf(sf, "%s", STR_GIGABYTE); sz>>=30;}
 
 	urlenc(tempstr, templn); strncpy(templn, tempstr, MAX_LINE_LEN);
@@ -30,7 +32,7 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 			uint64_t freeSize, devSize;
 			system_call_3(SC_FS_DISK_FREE, templn, (uint64_t)&devSize,  (uint64_t)&freeSize);
 
-			sprintf(fsize, "<a href=\"/mount.ps3%s\" title=\"%'8d %s\">%'8d %s</a>", templn, (int)((devSize)>>20), STR_MEGABYTE, (int)((freeSize)>>20), STR_MEGABYTE);
+			sprintf(fsize, "<a href=\"/mount.ps3%s\" title=\"%'d %s\">%'8d %s</a>", templn, (int)((devSize)>>20), STR_MEGABYTE, (int)((freeSize)>>20), STR_MEGABYTE);
 		}
 		else
 #ifdef PS2_DISC
@@ -45,9 +47,9 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 	else if( (flen > 4 && name[flen-4]=='.' && strcasestr(ISO_EXTENSIONS, name+flen-4)) || (!is_net && ( strstr(name, ".ntfs[") || !extcmp(name, ".BIN.ENC", 8) )) )
 	{
 		if( strcasestr(name, ".iso.") && extcasecmp(name, ".iso.0", 6) )
-			sprintf(fsize, "%'llu %s", sz, sf);
+			sprintf(fsize, "<label title=\"%'llu %s\"> %'llu %s</label>", sbytes, STR_BYTE, sz, sf);
 		else
-			sprintf(fsize, "<a href=\"/mount.ps3%s\">%'llu %s</a>", templn, sz, sf);
+			sprintf(fsize, "<a href=\"/mount.ps3%s\" title=\"%'llu %s\">%'llu %s</a>", templn, sbytes, STR_BYTE, sz, sf);
 	}
 #endif //#ifdef COBRA_ONLY
 
@@ -58,7 +60,7 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
  #else
 	else if(!is_net && ( !extcmp(name, ".pkg", 4) || !extcmp(name, ".edat", 5) || !extcmp(name, ".p3t", 4) || !memcmp(name, "webftp_server", 13) || !memcmp(name, "boot_plugins_", 13) ))
  #endif
-		sprintf(fsize, "<a href=\"/copy.ps3%s\">%'llu %s</a>", templn, sz, sf);
+		sprintf(fsize, "<a href=\"/copy.ps3%s\" title=\"%'llu %s\">%'llu %s</a>", templn, sbytes, STR_BYTE, sz, sf);
 #endif //#ifdef COPY_PS3
 
 
@@ -67,7 +69,7 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 		sprintf(fsize, "<a href=\"/loadprx.ps3?slot=6&prx=%s\">%'llu %s</a>", templn, sz, sf);
 #endif
 	else
-		sprintf(fsize, "%'llu %s", sz, sf);
+		sprintf(fsize, "<label title=\"%'llu %s\"> %'llu %s</label>", sbytes, STR_BYTE, sz, sf);
 
 	snprintf(ename, 6, "%s    ", name); urlenc(templn, tempstr);
 

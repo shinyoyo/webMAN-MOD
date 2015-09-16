@@ -907,7 +907,7 @@ next_html_entry:
 		if(mobile_mode)
 			sprintf(buffer, "slides = [");
 		else
-			{sprintf(templn, "<HR title=\"%i %s\">", idx, (strstr(param, "DI")!=NULL) ? STR_FILES : STR_GAMES); strcat(buffer, templn);}
+			{sprintf(templn, "<HR title=\"%'i %s\">", idx, (strstr(param, "DI")!=NULL) ? STR_FILES : STR_GAMES); strcat(buffer, templn);}
 
 		for(u16 m=0;m<idx;m++)
 		{

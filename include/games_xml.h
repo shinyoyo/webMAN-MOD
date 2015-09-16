@@ -717,29 +717,29 @@ continue_reading_folder_xml:
 		if( !(webman_config->cmask & PS3)) {sprintf(templn, "<Table key=\"wm_ps3\">"
 															XML_PAIR("icon","%s")
 															XML_PAIR("title","PLAYSTATION\xC2\xAE\x33")
-															XML_PAIR("info","%i %s") "%s",
+															XML_PAIR("info","%'i %s") "%s",
 															wm_icons[0], item_count[3], STR_PS3FORMAT, STR_NOITEM_PAIR); strcat(myxml, templn);}
 		if( !(webman_config->cmask & PS2)) {sprintf(templn, "<Table key=\"wm_ps2\">"
 															XML_PAIR("icon","%s")
 															XML_PAIR("title","PLAYSTATION\xC2\xAE\x32")
-															XML_PAIR("info","%i %s") "%s",
+															XML_PAIR("info","%'i %s") "%s",
 															wm_icons[2], item_count[2], STR_PS2FORMAT, STR_NOITEM_PAIR); strcat(myxml, templn);}
 #ifdef COBRA_ONLY
 		if( !(webman_config->cmask & PS1)) {sprintf(templn, "<Table key=\"wm_psx\">"
 															XML_PAIR("icon","%s")
 															XML_PAIR("title","PLAYSTATION\xC2\xAE")
-															XML_PAIR("info","%i %s") "%s",
+															XML_PAIR("info","%'i %s") "%s",
 															wm_icons[1], item_count[1], STR_PS1FORMAT, STR_NOITEM_PAIR);strcat(myxml, templn);}
 		if( !(webman_config->cmask & PSP)) {sprintf(templn, "<Table key=\"wm_psp\">"
 															XML_PAIR("icon","%s")
 															XML_PAIR("title","PLAYSTATION\xC2\xAEPORTABLE")
-															XML_PAIR("info","%i %s") "%s",
+															XML_PAIR("info","%'i %s") "%s",
 															wm_icons[3], item_count[4], STR_PSPFORMAT, STR_NOITEM_PAIR);strcat(myxml, templn);}
 		if( !(webman_config->cmask & DVD) ||
             !(webman_config->cmask & BLU)) {sprintf(templn, "<Table key=\"wm_dvd\">"
 															XML_PAIR("icon","%s")
 															XML_PAIR("title","%s")
-															XML_PAIR("info","%i %s") "%s",
+															XML_PAIR("info","%'i %s") "%s",
 															wm_icons[4], STR_VIDFORMAT, item_count[0], STR_VIDEO, STR_NOITEM_PAIR); strcat(myxml, templn);}
 #endif
 	}
