@@ -23,7 +23,7 @@ We would like to integrate all existing features available on the PS3 Scene like
 - Keep USB device awake
 - Mount last game or AUTOBOOT.ISO to system startup
 
-### webMAN MOD additionnals features
+### webMAN MOD additionnal features
 - Easy installer/updater
 - New folder icons (by Brunolee)
 - It can mount PS2 Classics games on PS2 Classic Launcher (.BIN.ENC)
