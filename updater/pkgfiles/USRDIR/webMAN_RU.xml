@@ -8,7 +8,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/multiman.png</String></Pair>
 				<Pair key="icon_notation"><String>WNT_XmbItemBrowser</String></Pair>
 				<Pair key="title"><String>webMAN</String></Pair>
-				<Pair key="info"><String>Функции webMAN</String></Pair>
+				<Pair key="info"><String>Инструменты webMAN</String></Pair>
 				<Pair key="child"><String>segment</String></Pair>
 			</Table>
 		</Attributes>
@@ -123,7 +123,6 @@
 			<Query class="type:x-xmb/folder-pixmap" key="webman_nethost0" attr="nethost0_links" src="#seg_webman_nethost_links_items_net2"/>
 		</Items>
 	</View>
-
 
 	<View id="seg_webman_nethost_links_items_net0">
 		<Items>
@@ -573,7 +572,7 @@
 		<Attributes>
 			<Table key="webman_unmount">
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/homebrew.png</String></Pair>
-				<Pair key="title"><String>Размонтировать диск</String></Pair>
+				<Pair key="title"><String>Выгрузить игру</String></Pair>
 				<Pair key="info"><String>Текущая смонтированная игра будет выгружена [Select+O]</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount.ps3/unmount</String></Pair>
@@ -581,7 +580,7 @@
 		</Attributes>
 		<Items><Item class="type:x-xmb/module-action" key="webman_unmount" attr="webman_unmount"/></Items>
 	</View>
-	
+
 	<!-- Main > webMAN > Insert Disc -->
 	<View id="seg_webman_insert">
 		<Attributes>
