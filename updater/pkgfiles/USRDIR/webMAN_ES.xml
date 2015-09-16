@@ -38,6 +38,7 @@
 			<Query class="type:x-xmb/folder-pixmap" key="webman_webman_unload" src="#seg_webman_unload"/>
 
 			<Query class="type:x-xmb/folder-pixmap" key="webman_webman_restart" src="#seg_webman_restart"/>
+			<Query class="type:x-xmb/folder-pixmap" key="webman_webman_shutdown" src="#seg_webman_shutdown"/>
 			<Query class="type:x-xmb/folder-pixmap" key="webman_prepare_ntfs" src="xcb://localhost/query?limit=1&cond=Ae+Game:Game.titleId BLES80616"/>
 		</Items>
 	</View>
@@ -54,7 +55,7 @@
 			</Table>
 		</Attributes>
 		<Items>
-			<Query class="type:x-xmb/folder-pixmap" key="nethost_links" attr="nethost_links" src="#seg_webman_nethost_sublinks"/>
+			<Query class="type:x-xmb/folder-pixmap" key="nethost_links0" attr="nethost_links" src="#seg_webman_nethost_sublinks"/>
 		</Items>
 	</View>
 
@@ -123,6 +124,7 @@
 			<Query class="type:x-xmb/folder-pixmap" key="webman_nethost0" attr="nethost0_links" src="#seg_webman_nethost_links_items_net2"/>
 		</Items>
 	</View>
+
 
 	<View id="seg_webman_nethost_links_items_net0">
 		<Items>
@@ -621,6 +623,20 @@
 			</Table>
 		</Attributes>
 		<Items><Item class="type:x-xmb/module-action" key="webman_restart" attr="webman_restart"/></Items>
+	</View>
+
+	<!-- Main > webMAN > Shutdown PS3 -->
+	<View id="seg_webman_shutdown">
+		<Attributes>
+			<Table key="webman_shutdown">
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
+				<Pair key="title"><String>Apagar PS3</String></Pair>
+				<Pair key="info"><String></String></Pair>
+				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_action"><String>http://localhost/shutdown.ps3</String></Pair>
+			</Table>
+		</Attributes>
+		<Items><Item class="type:x-xmb/module-action" key="webman_shutdown" attr="webman_shutdown"/></Items>
 	</View>
 
 <!-- ...... more homebrew .......... -->
