@@ -2087,8 +2087,8 @@ show_popup:
 													bb?"Play":"Startup", dd, hh, mm, ss,
 													(int)c_firmware, ((u32)(c_firmware * 1000.0f) % 1000) / 10, cfw_info, ip, net_type);
 
-								sprintf((char*)msg, "%s\r\n%s: %i %s\r\n"
-													"%s: %i %s\r\n", tmp,
+								sprintf((char*)msg, "%s\r\n%s: %'i %s\r\n"
+													"%s: %'i %s\r\n", tmp,
 													STR_STORAGE, (int)((blockSize*freeSize)>>20), STR_MBFREE,
 													STR_MEMORY, meminfo.avail>>10, STR_KBFREE);
 

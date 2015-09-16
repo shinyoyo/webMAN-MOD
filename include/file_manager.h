@@ -1,3 +1,4 @@
+#define SC_FS_DISK_FREE		840
 
 static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn, char *name, char *fsize, CellRtcDateTime rDate, u16 flen, unsigned long long sz, char *sf, u8 is_net)
 {
@@ -24,6 +25,14 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 			sprintf(fsize, "<a href=\"/fixgame.ps3%s\">%s</a>", templn, HTML_DIR);
 #endif //#ifdef FIX_GAME
 		else
+		if(strlen(templn)<=11 && strstr(templn, "/dev_"))
+		{
+			uint64_t freeSize, devSize;
+			system_call_3(SC_FS_DISK_FREE, templn, (uint64_t)&devSize,  (uint64_t)&freeSize);
+
+			sprintf(fsize, "<a href=\"/mount.ps3%s\" title=\"%'8d %s\">%'8d %s</a>", templn, (int)((devSize)>>20), STR_MEGABYTE, (int)((freeSize)>>20), STR_MEGABYTE);
+		}
+		else
 #ifdef PS2_DISC
 			sprintf(fsize, "<a href=\"/mount%s%s\">%s</a>", strstr(name, "[PS2")?".ps2":".ps3", templn, HTML_DIR);
 #else
@@ -36,9 +45,9 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 	else if( (flen > 4 && name[flen-4]=='.' && strcasestr(ISO_EXTENSIONS, name+flen-4)) || (!is_net && ( strstr(name, ".ntfs[") || !extcmp(name, ".BIN.ENC", 8) )) )
 	{
 		if( strcasestr(name, ".iso.") && extcasecmp(name, ".iso.0", 6) )
-			sprintf(fsize, "%llu %s", sz, sf);
+			sprintf(fsize, "%'llu %s", sz, sf);
 		else
-			sprintf(fsize, "<a href=\"/mount.ps3%s\">%llu %s</a>", templn, sz, sf);
+			sprintf(fsize, "<a href=\"/mount.ps3%s\">%'llu %s</a>", templn, sz, sf);
 	}
 #endif //#ifdef COBRA_ONLY
 
@@ -49,16 +58,16 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
  #else
 	else if(!is_net && ( !extcmp(name, ".pkg", 4) || !extcmp(name, ".edat", 5) || !extcmp(name, ".p3t", 4) || !memcmp(name, "webftp_server", 13) || !memcmp(name, "boot_plugins_", 13) ))
  #endif
-		sprintf(fsize, "<a href=\"/copy.ps3%s\">%llu %s</a>", templn, sz, sf);
+		sprintf(fsize, "<a href=\"/copy.ps3%s\">%'llu %s</a>", templn, sz, sf);
 #endif //#ifdef COPY_PS3
 
 
 #ifdef LOAD_PRX
 	else if(!is_net && ( !extcmp(name, ".sprx", 5)))
-		sprintf(fsize, "<a href=\"/loadprx.ps3?slot=6&prx=%s\">%llu %s</a>", templn, sz, sf);
+		sprintf(fsize, "<a href=\"/loadprx.ps3?slot=6&prx=%s\">%'llu %s</a>", templn, sz, sf);
 #endif
 	else
-		sprintf(fsize, "%llu %s", sz, sf);
+		sprintf(fsize, "%'llu %s", sz, sf);
 
 	snprintf(ename, 6, "%s    ", name); urlenc(templn, tempstr);
 
@@ -353,12 +362,12 @@ static bool folder_listing(char *buffer, char *templn, char *param, int conn_s, 
 			{
 				cellFsGetFreeSize(param, &blockSize, &freeSize);
 				sprintf(templn, "<hr>"
-								"<b><a href=\"%s\">%s</a>: %i %s",
+								"<b><a href=\"%s\">%s</a>: %'d %s",
 								param, param, (int)((blockSize*freeSize)>>20), STR_MBFREE);
 			}
 			strcat(buffer, templn);
 
-			sprintf(templn, "</b> &nbsp; <font color=\"#707070\">%i Dir(s) %i %s %i %s</font><br>",
+			sprintf(templn, "</b> &nbsp; <font color=\"#707070\">%'i Dir(s) %'d %s %'d %s</font><br>",
 							(dirs-1), (idx-dirs), STR_FILES,
 							dir_size<(_1MB_)?(int)(dir_size>>10):(int)(dir_size>>20),
 							dir_size<(_1MB_)?STR_KILOBYTE:STR_MEGABYTE);

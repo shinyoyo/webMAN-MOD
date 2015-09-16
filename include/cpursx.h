@@ -97,8 +97,8 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 											"CPU: %i°F%s<br>"
 											"RSX: %i°F</a><hr>"
 											"<a class=\"s\" href=\"/games.ps3\">"
-											"MEM: %iKB<br>"
-											"HDD: %i %s</a><hr>"
+											"MEM: %'d KB<br>"
+											"HDD: %'d %s</a><hr>"
 											"<a class=\"s\" href=\"/cpursx.ps3?mode\">"
 											"FAN SPEED: %i%% (0x%X)</a><hr>",
 					t1, max_temp1, t2,
