@@ -2326,7 +2326,7 @@ show_popup:
 						}
 #endif
 						else
-						if(!(webman_config->combo2 & BLOCKSVRS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_SQUARE) ) // R2+SQUARE
+						if(!(webman_config->combo2 & BLOCKSVRS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_SQUARE) && (c_firmware<=4.70f) ) // R2+SQUARE
 						{
 							show_msg((char*)"Blocking servers");
 							block_online_servers();
