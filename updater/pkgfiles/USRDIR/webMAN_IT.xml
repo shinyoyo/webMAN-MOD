@@ -626,18 +626,18 @@
 
 
 	<!-- Main > webMAN > Shutdown PS3 --> 
-629 	<View id="seg_webman_shutdown"> 
-630 		<Attributes> 
-631 			<Table key="webman_shutdown"> 
-632 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair> 
-633 				<Pair key="title"><String>Arresta la PS3</String></Pair> 
-634 				<Pair key="info"><String></String></Pair> 
-635 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair> 
-636 				<Pair key="module_action"><String>http://localhost/shutdown.ps3</String></Pair> 
-637 			</Table> 
-638 		</Attributes> 
-639 		<Items><Item class="type:x-xmb/module-action" key="webman_shutdown" attr="webman_shutdown"/></Items> 
-640 	</View> 
+	<View id="seg_webman_shutdown"> 
+		<Attributes> 
+			<Table key="webman_shutdown"> 
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair> 
+				<Pair key="title"><String>Arresta la PS3</String></Pair> 
+				<Pair key="info"><String></String></Pair> 
+				<Pair key="module_name"><String>webbrowser_plugin</String></Pair> 
+				<Pair key="module_action"><String>http://localhost/shutdown.ps3</String></Pair> 
+			</Table> 
+	</Attributes> 
+	<Items><Item class="type:x-xmb/module-action" key="webman_shutdown" attr="webman_shutdown"/></Items> 
+	</View> 
 
 <!-- ...... more homebrew .......... -->
 
