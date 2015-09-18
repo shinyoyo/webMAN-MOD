@@ -694,7 +694,7 @@ static void handleclient(u64 conn_s_p)
 		if(webman_config->spp & 2) //remove history only
 		{
 			delete_history(false);
-			if(c_firmware<=4.70f) block_online_servers();
+			block_online_servers();
 		}
 #endif
 
