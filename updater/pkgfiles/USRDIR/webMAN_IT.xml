@@ -250,7 +250,7 @@
 	<View id="seg_webman_setup">
 		<Attributes>
 			<Table key="webman_setup">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/cachefiles.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/settings.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [Setup]</String></Pair>
 				<Pair key="info"><String>Configura i dispositivi per la scansione dei giochi e le varie opzioni di Webman</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
