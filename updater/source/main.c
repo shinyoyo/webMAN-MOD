@@ -402,6 +402,8 @@ int main()
 	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webMAN_ZH.xml" ,"/dev_hdd0/game/XMBMANPLS/USRDIR/FEATURES/webMAN_ZH.xml");
 
 	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/bd.png"        	,"/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/bd.png");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/cachefiles.png"	,"/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/cachefiles.png");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/filemanager.png"	,"/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/filemanager.png");
 	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/devflash.png"  	,"/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/devflash.png");
 	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/gamesbrowser.png"	,"/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/gamesbrowser.png");
 	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/gamedata.png"  	,"/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/gamedata.png");
