@@ -635,7 +635,7 @@
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair> 
 				<Pair key="module_action"><String>http://localhost/shutdown.ps3</String></Pair> 
 			</Table> 
-	</Attributes> 
+		</Attributes> 
 	<Items><Item class="type:x-xmb/module-action" key="webman_shutdown" attr="webman_shutdown"/></Items> 
 	</View> 
 
