@@ -678,8 +678,8 @@ static void setup_form(char *buffer, char *templn)
 					"</form>", STR_SAVE); strcat(buffer, templn);
 
 	strcat(buffer,  "<hr color=\"#FF0000\"/>"
-					"<a href=\"http://store.brewology.com/ahomebrew.php?brewid=255\">prepNTFS - Prepare NTFS drives for webMAN access</a><br>"
-					"<a href=\"http://store.brewology.com/ahomebrew.php?brewid=257\">webMAN-MOD - Latest version of webMAN-MOD on Brewology</a><br>");
+					"<a href=\"http://github.com/Matsumot0/webMAN-MOD/releases\">webMAN-MOD - Latest version of webMAN-MOD on Github</a><br>"
+					"<a href=\"http://www.psx-place.com/forum/showthread.php?t=27\">webMAN-MOD - Main thread of webMAN-MOD on Psx-place</a><br>");
 
 /*
 	#define VSH_GCM_OBJ			0x70A8A8 // 4.53cex
