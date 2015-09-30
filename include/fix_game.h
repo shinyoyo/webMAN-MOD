@@ -129,33 +129,38 @@ static bool fix_ps3_extra(unsigned char *mem)
 	return false;
 }
 
+char fix_game_path[7][256]; int plevel=-1;
+
 static void fix_game(char *path)
 {
-	int fd;
+	int fd; if(plevel>=6) return; // limit recursion up to 6 levels
 
 	if(cellFsOpendir(path, &fd) == CELL_FS_SUCCEEDED)
 	{
-		char filename[MAX_PATH_LEN];
-		CellFsDirent dir; u64 read = sizeof(CellFsDirent);
+		plevel++;
+		CellFsDirent dir; u64 read = sizeof(CellFsDirent); struct CellFsStat s;
 
 #ifdef COPY_PS3
 		sprintf(current_file, "%s", path);
 #endif
 
-		while(!cellFsReaddir(fd, &dir, &read))
+		while(cellFsReaddir(fd, &dir, &read)==CELL_FS_SUCCEEDED)
 		{
 			if(!read || fix_aborted) break;
 			if(dir.d_name[0]=='.') continue;
 
-			sprintf(filename, "%s/%s", path, dir.d_name);
+			sprintf(fix_game_path[plevel], "%s/%s", path, dir.d_name);
 
 			if(!extcasecmp(dir.d_name, ".sprx", 5) || !extcasecmp(dir.d_name, ".self", 5) || !strcmp(dir.d_name, "EBOOT.BIN"))
 			{
+
+				if(cellFsStat(fix_game_path[plevel], &s)!=CELL_FS_SUCCEEDED || s.st_size < 0x500) continue;
+
 				int fdw, offset; uint64_t msiz = 0; char ps3_sys_version[8];
 
-				cellFsChmod(filename, MODE); //fix file read-write permission
+				cellFsChmod(fix_game_path[plevel], MODE); //fix file read-write permission
 
-				if(cellFsOpen(filename, CELL_FS_O_RDWR, &fdw, NULL, 0)==CELL_FS_SUCCEEDED)
+				if(cellFsOpen(fix_game_path[plevel], CELL_FS_O_RDWR, &fdw, NULL, 0)==CELL_FS_SUCCEEDED)
 				{
 					cellFsLseek(fdw, 0xC, CELL_FS_SEEK_SET, &msiz);
 					cellFsRead(fdw, (void *)&ps3_sys_version, 4, &msiz);
@@ -183,11 +188,13 @@ static void fix_game(char *path)
 				}
 				cellFsClose(fdw);
 			}
-			else if(isDir(filename) && (webman_config->fixgame!=FIX_GAME_QUICK)) fix_game(filename);
+			else if(isDir(fix_game_path[plevel]) && (webman_config->fixgame!=FIX_GAME_QUICK)) fix_game(fix_game_path[plevel]);
 
 			sys_timer_usleep(1);
 		}
+
 		cellFsClosedir(fd);
+		plevel--;
 	}
 }
 
@@ -230,7 +237,7 @@ void fix_iso(char *iso_file, uint64_t maxbytes, bool patch_update)
 		uint64_t chunk_size=_4KB_; char chunk[_4KB_], ps3_sys_version[8];
 		uint64_t msiz1 = 0, msiz2 = 0, lba = 0, pos=0xA000ULL;
 
-		bool fix_sfo=true, fix_eboot=true, fix_ver=false, fix_update=false; char update_path[64];
+		bool fix_sfo=true, fix_eboot=true, fix_ver=false, fix_update=false; char update_path[MAX_PATH_LEN];
 
 		uint64_t size = buf.st_size; char titleID[10];
 		if(maxbytes>0 && size>maxbytes) size=maxbytes;
@@ -258,7 +265,7 @@ void fix_iso(char *iso_file, uint64_t maxbytes, bool patch_update)
 					if(patch_update)
 					{
 						sprintf(update_path, "/dev_hdd0/game/%s/USRDIR/EBOOT.BIN", titleID); // has update on hdd0?
-						if(cellFsStat(iso_file, &buf)==CELL_FS_SUCCEEDED) {fix_update=true; fix_ver=false;}
+						if(cellFsStat(update_path, &buf)==CELL_FS_SUCCEEDED) {fix_update=true; fix_ver=false;}
 					}
 
 					if(fix_ver)
@@ -338,7 +345,19 @@ void fix_iso(char *iso_file, uint64_t maxbytes, bool patch_update)
 exit_fix:
 		cellFsClose(fd);
 
-		if(fix_update) {sprintf(update_path, "/dev_hdd0/game/%s/USRDIR", titleID); fix_game(update_path);}
+		// fix update folder
+		sprintf(update_path, "/dev_hdd0/game/%s/PARAM.SFO", titleID); int fs;
+		if(fix_update && cellFsOpen(update_path, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
+		{
+			char paramsfo[_4KB_]; unsigned char *mem = (u8*)paramsfo;
+			uint64_t msiz = 0;
+
+			cellFsLseek(fs, 0, CELL_FS_SEEK_SET, &msiz);
+			cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
+			cellFsClose(fs);
+
+			if(fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) {sprintf(update_path, "/dev_hdd0/game/%s/USRDIR", titleID); fix_game(update_path);}
+		}
 	}
 }
 #endif //#ifdef COBRA_ONLY

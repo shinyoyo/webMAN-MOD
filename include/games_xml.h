@@ -19,7 +19,12 @@ static void add_xmb_entry(char *param, char *tempstr, char *templn, char *skey, 
 	sprintf(skey, "3%c%c%c%c%c%c%04i", templn[0], templn[1], templn[2], templn[3], templn[4], templn[5], key);
 
 	char *p = strstr(templn, "CD");
-	if(p) {if(p[2]>='0' && p[2]<='9') skey[5]=p[2]; if(p[3]>='0' && p[3]<='9') skey[5]=p[3];} // sort by CD#
+	if(p) {if(p[2]>='0' && p[2]<='9') skey[6]=p[2]; if(p[3]>='0' && p[3]<='9') skey[6]=p[3];} // sort by CD#
+	else
+	{
+		u16 tlen=strlen(templn), i=5; if(tlen>64) tlen=64;
+		while(i<tlen) {if(templn[i]>='0' && templn[i]<='9') {skey[6]=templn[i]; break;} else i++;} // sort by game number (if possible)
+	}
 
 	if( !(webman_config->nogrp) )
 	{

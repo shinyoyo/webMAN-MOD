@@ -654,9 +654,9 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 					{
 						if(!ls && li==0 && f1>1 && data[v3_entry].is_directory && strlen(data[v3_entry].name)==1) ls=true;
 
-						if(filter_name[0]>=' ' && strcasestr(param, filter_name)==NULL && strcasestr(data[v3_entry].name, filter_name)==NULL) {v3_entry++; continue;}
-
 						if(add_net_game(ns, data, v3_entry, neth, param, templn, tempstr, enc_dir_name, icon, tempID, f1, 1)==FAILED) {v3_entry++; continue;}
+
+						if(filter_name[0]>=' ' && strcasestr(templn, filter_name)==NULL && strcasestr(param, filter_name)==NULL && strcasestr(data[v3_entry].name, filter_name)==NULL) {v3_entry++; continue;}
 
 						snprintf(ename, 6, "%s    ", templn);
 
@@ -709,9 +709,6 @@ next_html_entry:
 						}
 						int flen = strlen(entry.d_name);
 //////////////////////////////
-
-						if(filter_name[0]>=' ' && strcasestr(param, filter_name)==NULL && strcasestr(entry.d_name, filter_name)==NULL)
-						{if(subfolder) goto next_html_entry;}
 
 #ifdef COBRA_ONLY
 						is_iso = (f0==NTFS && flen>13 && strstr(entry.d_name + flen - 13, ".ntfs[")!=NULL) ||
@@ -794,6 +791,9 @@ next_html_entry:
 							{
 								get_title_and_id_from_sfo(templn, tempID, entry.d_name, icon, tempstr, 0);
 							}
+
+							if(filter_name[0]>=' ' && strcasestr(templn, filter_name)==NULL && strcasestr(param, filter_name)==NULL && strcasestr(entry.d_name, filter_name)==NULL)
+							{if(subfolder) goto next_html_entry; else continue;}
 
 							if(!is_iso && f1<2 && (icon[0]==0 || webman_config->nocov)) sprintf(icon, "%s/%s/PS3_GAME/ICON0.PNG", param, entry.d_name);
 

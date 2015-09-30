@@ -2181,11 +2181,12 @@ patch:
 
 	char path[MAX_PATH_LEN];
 
+ #ifdef EXT_GDATA
+
 	//------------------
 	// re-load last game
 	//------------------
 
- #ifdef EXT_GDATA
 	if(do_eject==MOUNT_EXT_GDATA) // extgd
 	{
 		sprintf(_path, WMTMP "/last_game.txt"); int fd=0;
@@ -2198,6 +2199,7 @@ patch:
 		else
 			_path[0]=0;
 	}
+
  #endif //#ifdef EXT_GDATA
 
 	if(_path[0] && strstr(_path, "/PS3_GAME/USRDIR/EBOOT.BIN")) _path[strlen(_path)-26]=0;
@@ -2296,11 +2298,13 @@ patch:
 		add_to_map((char*)"/app_home", path);
 	}
 
-    //--------------------------------------------
-	// auto-map /dev_hdd0/game to dev_usbxxx/GAMEI
-    //---------------------------------------------
  #ifdef EXT_GDATA
-    if(do_eject!=1) ;
+
+	//--------------------------------------------
+	// auto-map /dev_hdd0/game to dev_usbxxx/GAMEI
+	//---------------------------------------------
+
+	if(do_eject!=1) ;
 	else if(strstr(_path, "/GAME"))
 	{
 		int fdd=0; char extgdfile[540];
@@ -2315,6 +2319,7 @@ patch:
 		}
 		else if(extgd) set_gamedata_status(0, false);
 	}
+
  #endif
 
 	sprintf(app_sys, MM_ROOT_STD "/sys");
@@ -2324,11 +2329,11 @@ patch:
 		sprintf(app_sys, MM_ROOT_SSTL "/sys");
 
 
-    //----------------------------
+	//----------------------------
 	// Patched explore_plugin.sprx
-    //----------------------------
+	//----------------------------
 
-    if(c_firmware==4.21f)
+	if(c_firmware==4.21f)
 		sprintf(expplg, "%s/IEXP0_420.BIN", app_sys);
 	else if(c_firmware==4.30f || c_firmware==4.31f)
 		sprintf(expplg, "%s/IEXP0_430.BIN", app_sys);
@@ -2349,13 +2354,13 @@ patch:
 		add_to_map( (char*)"/dev_flash/vsh/module/explore_plugin.sprx", expplg);
 
 
-    //---------------
+	//---------------
 	// New libfs.sprx
-    //---------------
+	//---------------
 	if((do_eject>0) && (c_firmware>=4.20f) && cellFsStat((char*)NEW_LIBFS_PATH, &buf2)==CELL_FS_SUCCEEDED)
 		add_to_map((char*) ORG_LIBFS_PATH, (char*)NEW_LIBFS_PATH);
 
-    //-----------------------------------------------//
+	//-----------------------------------------------//
 	u64 map_data  = (MAP_BASE);
 	u64 map_paths = (MAP_BASE) + (max_mapped+1) * 0x20;
 

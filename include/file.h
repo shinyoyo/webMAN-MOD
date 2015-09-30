@@ -33,7 +33,7 @@ static void  import_edats(char *path1, char *path2);
 /*
 void add_log(const char *fmt, char *text)
 {
-	char buffer[4096];
+	char buffer[2048];
 
 	sprintf(buffer, fmt, text);
 
@@ -48,7 +48,6 @@ void add_log(const char *fmt, char *text)
 	cellFsClose(fd);
 }
 */
-
 
 static int sysLv2FsLink(const char *oldpath,const char *newpath)
 {

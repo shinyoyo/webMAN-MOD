@@ -32,7 +32,7 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 			uint64_t freeSize, devSize;
 			system_call_3(SC_FS_DISK_FREE, templn, (uint64_t)&devSize,  (uint64_t)&freeSize);
 
-			sprintf(fsize, "<a href=\"/mount.ps3%s\" title=\"%'d %s\">%'8d %s</a>", templn, (int)((devSize)>>20), STR_MEGABYTE, (int)((freeSize)>>20), STR_MEGABYTE);
+			sprintf(fsize, "<a href=\"/mount.ps3%s\" title=\"%'llu %s (%'llu %s)\">%'8llu %s</a>", templn, (unsigned long long)((devSize)>>20), STR_MEGABYTE, devSize, STR_BYTE, (unsigned long long)((freeSize)>>20), STR_MEGABYTE);
 		}
 		else
 #ifdef PS2_DISC
@@ -152,7 +152,7 @@ static bool folder_listing(char *buffer, char *templn, char *param, int conn_s, 
 
 		strcat(buffer, "<table class=\"propfont\"><tr><td>");
 
-		// breadcrumb trail
+		// breadcrumb trail //
 		strcpy(templn, param);
 		while(strchr(templn+1, '/'))
         {
@@ -169,7 +169,9 @@ static bool folder_listing(char *buffer, char *templn, char *param, int conn_s, 
 			strcat(buffer, swap);
 			strcpy(templn, param+tlen);
 		}
-		sprintf(swap, "<a href=\"/mount.ps3%s\">%s</a>", param, templn); strcat(buffer, swap);
+
+		if(!templn[1]) sprintf(swap, "/"); else sprintf(swap, "<a href=\"/mount.ps3%s\">%s</a>", param, templn); strcat(buffer, swap);
+		////
 
         strcat(buffer, ":</td><td width=90>&nbsp;</td><td></td></tr>");
 		tlen=0;

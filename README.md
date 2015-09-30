@@ -23,7 +23,7 @@ We would like to integrate all existing features available on the PS3 Scene like
 - Keep USB device awake
 - Mount last game or AUTOBOOT.ISO to system startup
 
-### webMAN MOD additionnal features
+### webMAN MOD additional features
 - Easy installer/updater
 - New folder icons (by Brunolee)
 - It can mount PS2 Classics games on PS2 Classic Launcher (.BIN.ENC)
@@ -71,7 +71,7 @@ Requirements for GNU/Linux:
 - All the documentation on *http://www.psdevwiki.com*, and to all the devs who contributed
 - Cobra team, for their work and sharing cobra source code in public
 - Deank as the creator of webMAN
-- Aldostools for all his works on this project!
+- aldostools for all his works on this project!
 - Zar my mate since the first day :)
 - NzV for Ps3mapi, Mamba prxloader
 - OsirisX for PS3XPAD
